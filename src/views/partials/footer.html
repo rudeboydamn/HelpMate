@@ -1,0 +1,65 @@
+<script>
+  // Close dropdowns when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('[x-data]')) {
+      document.querySelectorAll('[x-data] > div:last-child').forEach(el => el.classList.add('hidden'));
+    }
+  });
+
+  // Drag and drop for Kanban
+  document.addEventListener('DOMContentLoaded', () => {
+    initDragDrop();
+  });
+
+  document.body.addEventListener('htmx:afterSwap', () => {
+    initDragDrop();
+  });
+
+  function initDragDrop() {
+    document.querySelectorAll('.issue-card').forEach(card => {
+      card.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', card.dataset.issueId);
+        card.classList.add('dragging');
+      });
+      card.addEventListener('dragend', () => {
+        card.classList.remove('dragging');
+        document.querySelectorAll('.kanban-issues').forEach(col => col.classList.remove('drag-over'));
+      });
+    });
+
+    document.querySelectorAll('.kanban-issues').forEach(column => {
+      column.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        column.classList.add('drag-over');
+      });
+      column.addEventListener('dragleave', () => {
+        column.classList.remove('drag-over');
+      });
+      column.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        column.classList.remove('drag-over');
+        const issueId = e.dataTransfer.getData('text/plain');
+        const columnId = column.dataset.columnId;
+        const card = document.querySelector(`[data-issue-id="${issueId}"]`);
+        
+        if (card && columnId) {
+          // Move card visually
+          column.appendChild(card);
+          
+          // Update server
+          const formData = new FormData();
+          formData.append('issueId', issueId);
+          formData.append('columnId', columnId);
+          formData.append('position', column.children.length - 1);
+          
+          await fetch('/kanban/move-issue', {
+            method: 'POST',
+            body: formData
+          });
+        }
+      });
+    });
+  }
+</script>
+</body>
+</html>

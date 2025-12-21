@@ -1,0 +1,55 @@
+{{# include:head }}
+{{# include:nav }}
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-4">
+      <h1 class="text-2xl font-bold text-gray-900">Views</h1>
+      <select onchange="window.location.href='/views?projectId='+this.value" class="text-sm border rounded-lg px-3 py-1.5">
+        <option value="">All Projects</option>
+        {{#each projects}}<option value="{{ id }}">{{ identifier }} - {{ name }}</option>{{/each}}
+      </select>
+    </div>
+    <button hx-get="/views/create-modal" hx-target="#modal-container"
+      class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition font-medium flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      New View
+    </button>
+  </div>
+
+  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {{#each views}}
+    <a href="/views/{{ id }}/apply" class="block bg-white rounded-xl border p-5 hover:shadow-md transition">
+      <div class="flex items-start justify-between mb-2">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+          </svg>
+          <h3 class="font-semibold text-gray-900">{{ name }}</h3>
+        </div>
+        <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">{{ access }}</span>
+      </div>
+      <p class="text-sm text-gray-500 mb-3 line-clamp-2">{{ description }}</p>
+      <div class="flex items-center justify-between text-xs text-gray-400">
+        <span>{{ project_name }}</span>
+        <span>by {{ creator_name }}</span>
+      </div>
+    </a>
+    {{/each}}
+  </div>
+
+  {{#if !views.length}}
+  <div class="text-center py-16">
+    <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+      </svg>
+    </div>
+    <h3 class="text-lg font-medium text-gray-900">No saved views</h3>
+    <p class="text-gray-500 mt-1">Create custom views to filter and organize your issues</p>
+  </div>
+  {{/if}}
+</main>
+
+{{# include:footer }}

@@ -1,0 +1,58 @@
+{{# include:head }}
+{{# include:nav }}
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-4">
+      <h1 class="text-2xl font-bold text-gray-900">Pages</h1>
+    </div>
+    <button hx-get="/pages/create-modal" hx-target="#modal-container"
+      class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition font-medium flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      New Page
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex gap-1 mb-6 bg-gray-100 rounded-lg p-1 w-fit">
+    <a href="/pages?tab=public" class="px-4 py-2 rounded-md text-sm font-medium transition {{ activeTab == 'public' ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900' }}">🌐 Public</a>
+    <a href="/pages?tab=private" class="px-4 py-2 rounded-md text-sm font-medium transition {{ activeTab == 'private' ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900' }}">🔒 Private</a>
+    <a href="/pages?tab=archived" class="px-4 py-2 rounded-md text-sm font-medium transition {{ activeTab == 'archived' ? 'bg-white shadow text-gray-900' : 'text-gray-600 hover:text-gray-900' }}">📦 Archived</a>
+  </div>
+
+  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {{#each pages}}
+    <a href="/pages/{{ id }}" class="block bg-white rounded-xl border p-5 hover:shadow-md transition">
+      <div class="flex items-start gap-3">
+        <span class="text-2xl">{{ icon }}</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2">
+            <h3 class="font-semibold text-gray-900 truncate">{{ name }}</h3>
+            {{#if is_locked}}<span class="text-xs">🔒</span>{{/if}}
+          </div>
+          <p class="text-sm text-gray-500 mt-1 line-clamp-2">{{ description }}</p>
+          <div class="flex items-center gap-2 mt-3 text-xs text-gray-400">
+            <span>{{ owner_name }}</span>
+            <span>•</span>
+            <span>{{ project_name }}</span>
+          </div>
+        </div>
+      </div>
+    </a>
+    {{/each}}
+  </div>
+
+  {{#if !pages.length}}
+  <div class="text-center py-16">
+    <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <svg class="w-8 h-8 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+    </div>
+    <h3 class="text-lg font-medium text-gray-900">No pages yet</h3>
+    <p class="text-gray-500 mt-1">Create documents to capture and share ideas</p>
+  </div>
+  {{/if}}
+</main>
+
+{{# include:footer }}

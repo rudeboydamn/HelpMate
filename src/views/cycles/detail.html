@@ -1,0 +1,135 @@
+{{# include:head }}
+{{# include:nav }}
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex items-center gap-2 text-sm text-gray-500 mb-4">
+    <a href="/cycles/{{ cycle.project_id }}" class="hover:text-indigo-600">Cycles</a>
+    <span>/</span>
+    <span>{{ cycle.name }}</span>
+  </div>
+
+  <div class="flex items-start justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">{{ cycle.name }}</h1>
+      <p class="text-gray-500 mt-1">{{ cycle.description }}</p>
+      <div class="flex items-center gap-4 mt-3 text-sm text-gray-500">
+        <span class="px-2 py-1 rounded bg-blue-100 text-blue-700">{{ cycle.status }}</span>
+        <span>📅 {{ cycle.start_date }} → {{ cycle.end_date }}</span>
+        <span>👤 {{ cycle.owner_name }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-8">
+    <!-- Stats Cards -->
+    <div class="lg:col-span-3 grid grid-cols-4 gap-4">
+      <div class="bg-white rounded-xl p-4 border">
+        <div class="text-3xl font-bold text-gray-900">{{ stats.total }}</div>
+        <div class="text-sm text-gray-500">Total Issues</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border">
+        <div class="text-3xl font-bold text-green-600">{{ stats.completed }}</div>
+        <div class="text-sm text-gray-500">Completed</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border">
+        <div class="text-3xl font-bold text-blue-600">{{ stats.started }}</div>
+        <div class="text-sm text-gray-500">In Progress</div>
+      </div>
+      <div class="bg-white rounded-xl p-4 border">
+        <div class="text-3xl font-bold text-gray-600">{{ stats.backlog }}</div>
+        <div class="text-sm text-gray-500">Backlog</div>
+      </div>
+    </div>
+
+    <!-- Burn-down Chart -->
+    <div class="lg:col-span-2 bg-white rounded-xl border p-6">
+      <h3 class="font-semibold text-gray-900 mb-4">Burn-down Chart</h3>
+      <div id="burndown-chart" class="h-64">
+        <canvas id="burndownCanvas"></canvas>
+      </div>
+    </div>
+
+    <!-- Issue Progress -->
+    <div class="bg-white rounded-xl border p-6">
+      <h3 class="font-semibold text-gray-900 mb-4">Progress</h3>
+      <div class="space-y-4">
+        <div>
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-gray-600">Overall Progress</span>
+            <span class="font-medium">{{ stats.total }}%</span>
+          </div>
+          <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+            <div class="h-full bg-green-500 rounded-full transition-all" style="width: 50%"></div>
+          </div>
+        </div>
+        <div class="space-y-2 pt-4">
+          <div class="flex items-center justify-between text-sm">
+            <span class="flex items-center gap-2"><span class="w-3 h-3 bg-green-500 rounded-full"></span>Completed</span>
+            <span class="font-medium">{{ stats.completed }}</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="flex items-center gap-2"><span class="w-3 h-3 bg-blue-500 rounded-full"></span>In Progress</span>
+            <span class="font-medium">{{ stats.started }}</span>
+          </div>
+          <div class="flex items-center justify-between text-sm">
+            <span class="flex items-center gap-2"><span class="w-3 h-3 bg-gray-400 rounded-full"></span>Backlog</span>
+            <span class="font-medium">{{ stats.backlog }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Issues List -->
+    <div class="lg:col-span-3 bg-white rounded-xl border">
+      <div class="p-4 border-b flex items-center justify-between">
+        <h3 class="font-semibold text-gray-900">Issues in this Cycle</h3>
+        <span class="text-sm text-gray-500">{{ stats.total }} issues</span>
+      </div>
+      <div class="divide-y">
+        {{#each issues}}
+        <div class="p-4 hover:bg-gray-50 flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <span class="w-3 h-3 rounded-full" style="background: {{ state_color }}"></span>
+            <span class="font-medium">{{ name }}</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 text-xs rounded" style="background: {{ state_color }}20; color: {{ state_color }}">{{ state_name }}</span>
+            <span class="text-xs px-2 py-0.5 rounded bg-gray-100">{{ priority }}</span>
+          </div>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const progressData = JSON.parse('{{ progressDataJSON }}' || '[]');
+  if (progressData.length && document.getElementById('burndownCanvas')) {
+    const ctx = document.getElementById('burndownCanvas').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: progressData.map(d => d.date),
+        datasets: [{
+          label: 'Remaining',
+          data: progressData.map(d => d.total_issues - d.completed_issues),
+          borderColor: '#6366f1',
+          tension: 0.1,
+          fill: false
+        }, {
+          label: 'Ideal',
+          data: progressData.map((d, i) => progressData[0]?.total_issues * (1 - i / progressData.length)),
+          borderColor: '#d1d5db',
+          borderDash: [5, 5],
+          tension: 0.1,
+          fill: false
+        }]
+      },
+      options: { responsive: true, maintainAspectRatio: false }
+    });
+  }
+</script>
+
+{{# include:footer }}

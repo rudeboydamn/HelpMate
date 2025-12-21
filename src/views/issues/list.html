@@ -1,0 +1,59 @@
+{{# include:head }}
+{{# include:nav }}
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-900">Issues</h1>
+    <button hx-get="/issues/create-modal" hx-target="#modal-container"
+      class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition font-medium flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      New Issue
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+    <form hx-get="/issues/list" hx-target="#issue-list" hx-trigger="change, keyup delay:300ms from:input[name=search]" class="flex flex-wrap gap-4">
+      <div class="flex-1 min-w-[200px]">
+        <input type="text" name="search" placeholder="Search issues..." value="{{ filters.search }}"
+          class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+      </div>
+      <select name="status" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+        <option value="">All Status</option>
+        <option value="open">Open</option>
+        <option value="in_progress">In Progress</option>
+        <option value="review">Review</option>
+        <option value="done">Done</option>
+        <option value="closed">Closed</option>
+      </select>
+      <select name="priority" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+        <option value="">All Priority</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="urgent">Urgent</option>
+      </select>
+      <select name="project" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 bg-white">
+        <option value="">All Projects</option>
+        {{#each projects}}
+        <option value="{{ id }}">{{ name }}</option>
+        {{/each}}
+      </select>
+    </form>
+  </div>
+
+  <!-- Issue List -->
+  <div id="issue-list" class="space-y-3" hx-get="/issues/list" hx-trigger="load" hx-swap="innerHTML">
+    <div class="text-center py-8 text-gray-400">
+      <svg class="w-8 h-8 mx-auto animate-spin" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+      </svg>
+      <p class="mt-2">Loading issues...</p>
+    </div>
+  </div>
+</main>
+
+{{# include:footer }}

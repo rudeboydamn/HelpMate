@@ -1,0 +1,82 @@
+{{# include:head }}
+{{# include:nav }}
+
+<main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex items-center gap-2 text-sm text-gray-500 mb-4">
+    <a href="/pages" class="hover:text-indigo-600">Pages</a>
+    <span>/</span>
+    <span>{{ page.name }}</span>
+  </div>
+
+  <div class="bg-white rounded-xl border">
+    <!-- Header -->
+    <div class="p-4 border-b flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="text-2xl">{{ page.icon }}</span>
+        <input type="text" value="{{ page.name }}" id="page-title"
+          class="text-xl font-bold text-gray-900 border-0 focus:ring-0 p-0 bg-transparent"
+          {{ canEdit ? '' : 'readonly' }}>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-gray-400">{{ page.access == 'public' ? '🌐 Public' : '🔒 Private' }}</span>
+        <button hx-post="/pages/{{ page.id }}/toggle-lock" hx-swap="innerHTML" 
+          class="text-sm px-2 py-1 rounded hover:bg-gray-100">
+          {{ page.is_locked ? '🔒 Locked' : '🔓 Unlocked' }}
+        </button>
+        <button hx-post="/pages/{{ page.id }}/archive" hx-confirm="Archive this page?"
+          class="text-sm px-2 py-1 rounded hover:bg-gray-100 text-gray-500">Archive</button>
+        <span id="save-status" class="text-sm text-gray-400"></span>
+      </div>
+    </div>
+
+    <!-- Editor -->
+    <div class="p-6">
+      <div id="editor" class="min-h-[500px] prose max-w-none focus:outline-none" contenteditable="{{ canEdit }}"
+        hx-post="/pages/{{ page.id }}/update" hx-trigger="keyup changed delay:1000ms" hx-vals="js:{description_html: document.getElementById('editor').innerHTML}"
+        hx-target="#save-status" hx-swap="innerHTML">
+        {{ page.description_html }}
+      </div>
+    </div>
+
+    <!-- Editor Toolbar -->
+    {{#if canEdit}}
+    <div class="border-t p-3 flex items-center gap-2 bg-gray-50">
+      <button onclick="document.execCommand('bold')" class="p-2 rounded hover:bg-gray-200" title="Bold">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 12h8a4 4 0 100-8H6v8zm0 0h9a4 4 0 110 8H6v-8z"/></svg>
+      </button>
+      <button onclick="document.execCommand('italic')" class="p-2 rounded hover:bg-gray-200" title="Italic">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l-4 4 4 4M6 16l4-4-4-4"/></svg>
+      </button>
+      <button onclick="document.execCommand('underline')" class="p-2 rounded hover:bg-gray-200" title="Underline">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M5 12h14M7 16h10"/></svg>
+      </button>
+      <div class="w-px h-6 bg-gray-300 mx-1"></div>
+      <button onclick="document.execCommand('formatBlock', false, 'h1')" class="p-2 rounded hover:bg-gray-200 text-sm font-bold">H1</button>
+      <button onclick="document.execCommand('formatBlock', false, 'h2')" class="p-2 rounded hover:bg-gray-200 text-sm font-bold">H2</button>
+      <button onclick="document.execCommand('formatBlock', false, 'h3')" class="p-2 rounded hover:bg-gray-200 text-sm font-bold">H3</button>
+      <div class="w-px h-6 bg-gray-300 mx-1"></div>
+      <button onclick="document.execCommand('insertUnorderedList')" class="p-2 rounded hover:bg-gray-200" title="Bullet List">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+      <button onclick="document.execCommand('insertOrderedList')" class="p-2 rounded hover:bg-gray-200" title="Numbered List">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+      </button>
+      <button onclick="const url = prompt('Enter URL:'); if(url) document.execCommand('createLink', false, url)" class="p-2 rounded hover:bg-gray-200" title="Add Link">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+      </button>
+    </div>
+    {{/if}}
+  </div>
+</main>
+
+<style>
+  #editor:empty:before {
+    content: 'Start writing...';
+    color: #9ca3af;
+  }
+  #editor:focus:empty:before {
+    content: '';
+  }
+</style>
+
+{{# include:footer }}

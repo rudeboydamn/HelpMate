@@ -1,0 +1,120 @@
+{{# include:head }}
+{{# include:nav }}
+
+<main class="h-[calc(100vh-64px)] flex flex-col">
+  <!-- Header -->
+  <div class="bg-white border-b px-6 py-4 flex items-center justify-between flex-shrink-0">
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2">
+        <div class="w-4 h-4 rounded" style="background-color: {{ project.color }}"></div>
+        <h1 class="text-xl font-semibold text-gray-900">{{ project.name }}</h1>
+      </div>
+      <select onchange="window.location.href='/kanban/'+this.value" 
+        class="text-sm border border-gray-300 rounded-lg px-3 py-1.5 bg-white">
+        {{#each projects}}
+        <option value="{{ id }}">{{ name }}</option>
+        {{/each}}
+      </select>
+    </div>
+    <div class="flex items-center gap-3">
+      <button hx-get="/issues/create-modal?projectId={{ project.id }}" hx-target="#modal-container"
+        class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition font-medium flex items-center gap-2 text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+        Add Issue
+      </button>
+    </div>
+  </div>
+
+  <!-- Kanban Board -->
+  <div class="flex-1 overflow-x-auto p-6">
+    <div class="flex gap-6 h-full" id="kanban-board">
+      {{#each columns}}
+      <div class="kanban-column bg-gray-100 rounded-xl p-4 min-w-[320px] max-w-[320px] flex flex-col" data-column-id="{{ id }}">
+        <div class="flex items-center justify-between mb-4 flex-shrink-0">
+          <div class="flex items-center gap-2">
+            <div class="w-3 h-3 rounded-full" style="background-color: {{ color }}"></div>
+            <h3 class="font-semibold text-gray-700">{{ name }}</h3>
+            <span class="text-xs text-gray-400 bg-gray-200 px-2 py-0.5 rounded-full">{{ issues.length }}</span>
+          </div>
+          <button class="text-gray-400 hover:text-gray-600 p-1">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div class="kanban-issues flex-1 space-y-3 overflow-y-auto min-h-[100px] p-1" 
+             data-column-id="{{ id }}">
+          {{#each issues}}
+          <div class="issue-card bg-white rounded-lg p-3 shadow-sm border border-gray-100 cursor-move hover:shadow-md transition"
+               draggable="true"
+               data-issue-id="{{ id }}"
+               hx-get="/issues/{{ id }}"
+               hx-target="#modal-container"
+               hx-trigger="click">
+            <div class="flex items-start justify-between gap-2">
+              <h4 class="text-sm font-medium text-gray-800 leading-snug">{{ title }}</h4>
+            </div>
+            <div class="flex items-center gap-2 mt-3 flex-wrap">
+              <span class="text-xs px-2 py-0.5 rounded 
+                {{#if priority}}
+                  bg-amber-100 text-amber-700
+                {{/if}}
+              ">{{ priority }}</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-gray-100 text-gray-600">{{ issue_type }}</span>
+            </div>
+            {{#if assignee_name}}
+            <div class="flex items-center gap-2 mt-3 pt-3 border-t border-gray-50">
+              <div class="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xs font-medium">
+                {{ assignee_name }}
+              </div>
+              <span class="text-xs text-gray-500">{{ assignee_name }}</span>
+            </div>
+            {{/if}}
+          </div>
+          {{/each}}
+        </div>
+
+        <!-- Quick add -->
+        <div class="mt-3 flex-shrink-0">
+          <form hx-post="/kanban/quick-add/{{ id }}" hx-target="previous .kanban-issues" hx-swap="beforeend" hx-on::after-request="this.reset()"
+            class="flex gap-2">
+            <input type="text" name="title" placeholder="Add issue..." 
+              class="flex-1 text-sm px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white">
+            <button type="submit" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition">
+              <svg class="w-4 h-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+            </button>
+          </form>
+        </div>
+      </div>
+      {{/each}}
+
+      <!-- Add Column Button -->
+      <div class="min-w-[280px]">
+        <button onclick="document.getElementById('add-column-form').classList.toggle('hidden')"
+          class="w-full p-4 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 hover:border-gray-400 hover:text-gray-600 transition flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Add Column
+        </button>
+        <form id="add-column-form" class="hidden mt-3 bg-white rounded-xl p-4 shadow-sm border"
+          hx-post="/kanban/add-column" hx-target="#kanban-board" hx-swap="beforeend" hx-on::after-request="this.reset(); this.classList.add('hidden')">
+          <input type="hidden" name="boardId" value="{{ board.id }}">
+          <input type="text" name="name" placeholder="Column name" required
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 mb-2">
+          <input type="color" name="color" value="#6366f1" class="w-full h-10 rounded-lg cursor-pointer mb-2">
+          <button type="submit" class="w-full bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700 transition">
+            Create Column
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+{{# include:footer }}

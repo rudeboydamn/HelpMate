@@ -1,0 +1,71 @@
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-40">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <!-- Logo -->
+      <div class="flex items-center gap-8">
+        <a href="/dashboard" class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-600 to-purple-600 flex items-center justify-center">
+            <span class="text-white text-lg">⚡</span>
+          </div>
+          <span class="text-xl font-bold text-gray-900">HelpMate</span>
+        </a>
+
+        <!-- Main Nav -->
+        <div class="hidden md:flex items-center gap-1">
+          <a href="/dashboard" class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition">
+            Dashboard
+          </a>
+          <a href="/issues" class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition">
+            Issues
+          </a>
+          <div class="relative group">
+            <button class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition flex items-center gap-1">
+              Planning
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </button>
+            <div class="absolute top-full left-0 mt-1 w-48 bg-white rounded-lg shadow-lg border py-1 hidden group-hover:block">
+              <a href="/cycles/{{ project.id }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">🔄 Cycles</a>
+              <a href="/modules/{{ project.id }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">📦 Modules</a>
+              <a href="/views" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">👁️ Views</a>
+              <a href="/pages" class="block px-4 py-2 text-gray-700 hover:bg-gray-50">📄 Pages</a>
+            </div>
+          </div>
+          <a href="/analytics" class="px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition">
+            Analytics
+          </a>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <span class="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full font-medium">
+          {{ org.plan }}
+        </span>
+        <div class="relative" x-data="{ open: false }">
+          <button onclick="this.nextElementSibling.classList.toggle('hidden')" 
+            class="flex items-center gap-2 hover:bg-gray-100 rounded-lg p-2 transition">
+            <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-medium">
+              {{ user.name }}
+            </div>
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+            </svg>
+          </button>
+          <div class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border py-1 z-50">
+            <div class="px-4 py-2 border-b">
+              <p class="font-medium text-sm">{{ user.name }}</p>
+              <p class="text-xs text-gray-500">{{ user.email }}</p>
+            </div>
+            <a href="/org/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Team Settings</a>
+            <a href="/billing" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Billing</a>
+            <hr class="my-1">
+            <form hx-post="/logout" class="block">
+              <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+                Sign Out
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+<div id="modal-container"></div>

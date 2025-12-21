@@ -1,0 +1,123 @@
+{{# include:head }}
+{{# include:nav }}
+
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="flex items-center justify-between mb-8">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+      <p class="text-gray-500 mt-1">Welcome back, {{ user.name }}</p>
+    </div>
+    <button hx-get="/issues/create-modal" hx-target="#modal-container"
+      class="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition font-medium flex items-center gap-2">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+      </svg>
+      New Issue
+    </button>
+  </div>
+
+  <!-- Stats Cards -->
+  <div id="stats-container" hx-get="/dashboard/stats" hx-trigger="load" hx-swap="innerHTML">
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse">
+        <div class="h-16 bg-gray-200 rounded"></div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse">
+        <div class="h-16 bg-gray-200 rounded"></div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse">
+        <div class="h-16 bg-gray-200 rounded"></div>
+      </div>
+      <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 animate-pulse">
+        <div class="h-16 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid lg:grid-cols-3 gap-8 mt-8">
+    <!-- Recent Issues -->
+    <div class="lg:col-span-2">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="p-4 border-b flex items-center justify-between">
+          <h2 class="font-semibold text-gray-900">Recent Issues</h2>
+          <a href="/issues" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">View all →</a>
+        </div>
+        <div class="divide-y" id="recent-issues">
+          {{#each recentIssues}}
+          <div class="p-4 hover:bg-gray-50 transition cursor-pointer" hx-get="/issues/{{ id }}" hx-target="#modal-container">
+            <div class="flex items-start justify-between">
+              <div>
+                <h3 class="font-medium text-gray-900">{{ title }}</h3>
+                <div class="flex items-center gap-2 mt-1 text-sm text-gray-500">
+                  <span>{{ project_name }}</span>
+                  <span>•</span>
+                  <span>{{ status }}</span>
+                </div>
+              </div>
+              <span class="text-xs px-2 py-1 rounded bg-gray-100">{{ priority }}</span>
+            </div>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+
+    <!-- Projects -->
+    <div>
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="p-4 border-b flex items-center justify-between">
+          <h2 class="font-semibold text-gray-900">Projects</h2>
+          <a href="/org/projects" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">Manage →</a>
+        </div>
+        <div class="p-4 space-y-3">
+          {{#each projects}}
+          <a href="/kanban/{{ id }}" class="block p-3 rounded-lg hover:bg-gray-50 transition">
+            <div class="flex items-center gap-3">
+              <div class="w-3 h-3 rounded-full" style="background-color: {{ color }}"></div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-medium text-gray-900 truncate">{{ name }}</h3>
+                <p class="text-sm text-gray-500">{{ issue_count }} issues • {{ done_count }} done</p>
+              </div>
+            </div>
+          </a>
+          {{/each}}
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 mt-6">
+        <div class="p-4 border-b">
+          <h2 class="font-semibold text-gray-900">Quick Actions</h2>
+        </div>
+        <div class="p-4 space-y-2">
+          <a href="/kanban" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition">
+            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7"/>
+              </svg>
+            </div>
+            <span class="font-medium text-gray-700">Open Kanban Board</span>
+          </a>
+          <button hx-get="/issues/create-modal" hx-target="#modal-container" class="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition text-left">
+            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+            </div>
+            <span class="font-medium text-gray-700">Create New Issue</span>
+          </button>
+          <a href="/org/settings" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition">
+            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+            </div>
+            <span class="font-medium text-gray-700">Manage Team</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+{{# include:footer }}
