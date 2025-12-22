@@ -38,52 +38,49 @@ authRoutes.post('/login', async (req, res) => {
     </form>
   `;
 
-  // First, check if user exists in users table with password_hash (legacy/demo users)
-  const { data: user } = await supabase
-    .from('users')
-    .select('id, email, password_hash, name, org_id')
-    .eq('email', email)
-    .eq('is_active', true)
-    .single();
+  try {
+    // Check if user exists in users table with password_hash
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('id, email, password_hash, name, org_id, is_active')
+      .eq('email', email)
+      .single();
 
-  if (user && user.password_hash) {
-    // Legacy login with bcrypt password
-    const validPassword = await bcrypt.compare(password, user.password_hash);
-    if (validPassword) {
-      req.session.userId = user.id;
-      res.setHeader('HX-Redirect', '/dashboard');
-      return res.send('');
+    if (userError) {
+      console.error('User lookup error:', userError);
+      return res.send(renderError());
     }
-  }
 
-  // Try Supabase Auth
-  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
+    if (!user) {
+      return res.send(renderError());
+    }
 
-  if (authError || !authData?.user) {
+    // Check if user is active
+    if (user.is_active === false) {
+      return res.send(renderError());
+    }
+
+    // Verify password with bcrypt
+    if (user.password_hash) {
+      const validPassword = await bcrypt.compare(password, user.password_hash);
+      if (validPassword) {
+        // Update last login
+        await supabase
+          .from('users')
+          .update({ last_login_at: new Date().toISOString() })
+          .eq('id', user.id);
+        
+        req.session.userId = user.id;
+        res.setHeader('HX-Redirect', '/dashboard');
+        return res.send('');
+      }
+    }
+
+    return res.send(renderError());
+  } catch (err) {
+    console.error('Login error:', err);
     return res.send(renderError());
   }
-
-  // Get or link user profile
-  let userId = user?.id;
-  if (!userId) {
-    const { data: authUser } = await supabase
-      .from('users')
-      .select('id')
-      .eq('auth_id', authData.user.id)
-      .single();
-    userId = authUser?.id;
-  }
-
-  if (userId) {
-    req.session.userId = userId;
-    res.setHeader('HX-Redirect', '/dashboard');
-    return res.send('');
-  }
-
-  return res.send(renderError());
 });
 
 // Register page
@@ -98,27 +95,10 @@ authRoutes.get('/register', (req, res) => {
 authRoutes.post('/register', async (req, res) => {
   const { name, email, password, org_name } = req.body;
 
-  // Create user in Supabase Auth
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { name }
-  });
+  // Hash the password for local storage
+  const passwordHash = await bcrypt.hash(password, 10);
 
-  if (authError) {
-    console.error('Auth signup error:', authError);
-    const errorMsg = authError.message.includes('already') 
-      ? 'An account with this email already exists.'
-      : 'Failed to create account. Please try again.';
-    return res.send(`
-      <div class="p-3 mb-4 bg-red-100 text-red-700 rounded-lg text-sm">
-        ${errorMsg}
-      </div>
-    `);
-  }
-
-  // Create organization
+  // Create organization first
   const orgSlug = org_name.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-') + '-' + Date.now().toString(36);
   
   const { data: org, error: orgError } = await supabase
@@ -129,25 +109,31 @@ authRoutes.post('/register', async (req, res) => {
 
   if (orgError) {
     console.error('Org creation error:', orgError);
-    return res.send(`<div class="p-3 mb-4 bg-red-100 text-red-700 rounded-lg text-sm">Failed to create organization.</div>`);
+    return res.send(`<div class="p-3 mb-4 bg-red-100 text-red-700 rounded-lg text-sm">Failed to create organization. Please try again.</div>`);
   }
 
-  // Create user profile in users table
+  // Create user profile in users table with password hash
   const { data: user, error: userError } = await supabase
     .from('users')
     .insert({ 
       email, 
-      name, 
+      name,
+      password_hash: passwordHash,
       role: 'owner', 
       org_id: org.id,
-      auth_id: authData.user.id
+      is_active: true
     })
     .select()
     .single();
 
   if (userError) {
     console.error('User creation error:', userError);
-    return res.send(`<div class="p-3 mb-4 bg-red-100 text-red-700 rounded-lg text-sm">Failed to create user profile.</div>`);
+    // Clean up the org if user creation fails
+    await supabase.from('organizations').delete().eq('id', org.id);
+    const errorMsg = userError.message.includes('duplicate') || userError.message.includes('unique')
+      ? 'An account with this email already exists.'
+      : 'Failed to create user profile. Please try again.';
+    return res.send(`<div class="p-3 mb-4 bg-red-100 text-red-700 rounded-lg text-sm">${errorMsg}</div>`);
   }
 
   // Create default project
